@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CRUD Agenda</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container">
+            <a class="navbar-brand" href="#">CRUD Agenda</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="./index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./backoffice.html">Backoffice</a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <img src="https://images.unsplash.com/photo-1529651737248-dad5e287768e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1301&q=80"
+        alt="agenda" class="w-100 object-fit-cover" style="height:30vh">
+
+    <div class="container">
+        <div id="alert-container"></div>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h4 class="my-4">Dettaglio</h4>
+                <div id="appointment-details">
+
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <!-- <h1 class="display-5">Nome Appuntamento</h1>
+                    <p class="font-monospace">20/01/2024</p>
+                    <p class="lead">Descrizione</p>
+                    <p class="display-6 text-primary">200€</p>
+
+                    <h6 class="bg-light ps-2 py-2">Server Details</h6>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item px-2"><strong>id:</strong> 1283718273</li>
+                        <li class="list-group-item px-2"><strong>createdAt:</strong> 20/12/2023</li>
+                        <li class="list-group-item px-2"><strong>updatedAt:</strong> 01/01/2024</li>
+                    </ul> -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <script>
+        const URL = "https://striveschool-api.herokuapp.com/api/agenda/"
+        const params = new URLSearchParams(window.location.search)
+        const id = params.get("appId")
+
+        window.addEventListener("DOMContentLoaded", () => {
+            fetch(URL + id)
+                .then(resp => {
+                    if (resp.ok) {
+                        return resp.json()
+                    } else {
+                        throw new Error("Errore nella fetch")
+                    }
+                })
+                .then(appObj => {
+                    const container = document.getElementById("appointment-details")
+                    // destrutturazione di oggetto
+                    const { _id, name, description, price, time, createdAt, updatedAt } = appObj
+
+                    container.innerHTML = `
+                    <h1 class="display-5">${name}</h1>
+                    <p class="font-monospace">${new Date(time).toLocaleString()}</p>
+                    <p class="lead">${description}</p>
+                    <p class="display-6 ${price !== null ? "text-primary" : "text-success"}">${price !== null ? price + "€" : "gratis"}</p>
+
+                    <h6 class="bg-light ps-2 py-2">Server Details</h6>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item px-2"><strong>id:</strong> ${_id}</li>
+                        <li class="list-group-item px-2"><strong>createdAt:</strong> ${createdAt}</li>
+                        <li class="list-group-item px-2"><strong>updatedAt:</strong> ${updatedAt}</li>
+                    </ul>
+                    <button class="btn btn-success mt-4" onclick="handleBtnClick()">Modifica</button>
+                    `
+
+
+                })
+                .catch(err => console.log(err))
+        })
+
+        const handleBtnClick = () => {
+            window.location.assign("./backoffice.html?appId=" + id)
+        }
+
+    </script>
+</body>
+
+</html>

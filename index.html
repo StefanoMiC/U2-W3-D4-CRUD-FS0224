@@ -34,8 +34,11 @@
     <div class="container">
         <div id="alert-container"></div>
         <div class="row justify-content-center">
-            <div class="col-md-8">
-                <h2 class="display-4 my-4 text-center">Appuntamenti</h2>
+            <div class="col-md-8 text-center">
+                <h2 class="display-4 my-4 text-center d-inline-block">Appuntamenti</h2>
+                <div class="spinner-border text-primary d-none" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
                 <ul class="list-group">
                     <!-- <li class="list-group-item">An item</li> -->
 
@@ -50,7 +53,18 @@
     <script>
         const URL = "https://striveschool-api.herokuapp.com/api/agenda/"
 
+        const isLoading = (bool) => {
+            const loader = document.querySelector(".spinner-border")
+            if (bool) {
+                loader.classList.remove("d-none")
+            } else {
+                loader.classList.add("d-none")
+            }
+        }
+
         window.addEventListener("DOMContentLoaded", () => {
+
+            isLoading(true)
 
             fetch(URL)
                 .then((response) => {
@@ -65,21 +79,24 @@
                     }
                 })
                 .then((appointments) => {
+
+                    // isLoading(false)
+
                     const ul = document.querySelector(".list-group")
 
                     console.log(appointments)
 
                     appointments.forEach(app => {
                         const li = document.createElement("li")
-                        li.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center")
-                        li.innerHTML = `${app.name} <span class="badge rounded-pill text-bg-dark">${app.price}€</span>`
-
+                        li.classList.add("list-group-item", "d-flex", "align-items-center", "gap-2")
+                        li.innerHTML = `<span class="me-auto">${app.name}</span> <span class="badge rounded-pill ${app.price !== null ? "text-bg-dark" : "text-bg-success"}">${app.price !== null ? app.price + "€" : "gratis"}</span> <a href="./details.html?appId=${app._id}">DETTAGLIO</a>`
 
                         ul.appendChild(li)
                     })
                 })
                 .catch(err => {
                     console.log(err);
+                    // isLoading(false)
 
                     const alertContainer = document.getElementById("alert-container")
                     const h2 = document.querySelector("h2")
@@ -90,6 +107,11 @@
                     alert.innerHTML = "Qualcosa è andato storto :( <br> <strong>Errore:</strong> " + err.message
 
                     alertContainer.appendChild(alert)
+                })
+                .finally(() => {
+                    // questo metodo scatta in ogni caso alla fine della vita della Promise
+                    // qunindi possiamo spegnere il caricamento sia in caso di ricevimento dei dati sia in caso di errore
+                    isLoading(false)
                 })
 
 
