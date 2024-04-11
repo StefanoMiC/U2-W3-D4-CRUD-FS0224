@@ -78,33 +78,40 @@
         crossorigin="anonymous"></script>
 
     <script>
-
+        // vedi pagina details.html per spiegazione delle prossime due righe
         const params = new URLSearchParams(window.location.search)
         const id = params.get("appId")
         const URL = id ? "https://striveschool-api.herokuapp.com/api/agenda/" + id : "https://striveschool-api.herokuapp.com/api/agenda/"
         const method = id ? "PUT" : "POST"
 
-        window.onload = () => {
+        // al caricamento della pagina facciamo richiesta al server di tornarci i dati specifici della risorsa con l'id che troviamo nella URL
+        window.addEventListener("DOMContentLoaded", () => {
 
-            console.log("RESOURCE ID: " + id)
+            console.log("RESOURCE ID: " + id) // la variabile ora contiene un id oppure null
 
+            // prendo il form e applico evento submit
             const form = document.querySelector("form")
             form.addEventListener("submit", handleSubmit)
 
+            // prendo il riferimento ai bottoni e al sottotitolo che modificheremo in seguito
             const btnSubmit = document.querySelector("button[type='submit']")
+            const delBtn = document.querySelector(".btn-danger")
             const subtitle = document.getElementById("subtitle")
 
             if (id) {
+                // se siamo qui significa che abbiamo un id nella URL e siamo quindi in modalità modifica
+
+                // cambio di testo sottotitolo a riflettere la pagina in versione "modifica" (dato dalla presenza dell'id)
                 subtitle.innerText = "— Modifica appuntamento"
+                // modifica aspetto del bottone submit
                 btnSubmit.classList.remove("btn-primary")
                 btnSubmit.classList.add("btn-success")
                 btnSubmit.innerText = "Modifica"
-
-                const delBtn = document.querySelector(".btn-danger")
+                //    gestione pulsante di delete
                 delBtn.addEventListener("click", handleDelete)
                 delBtn.classList.remove("d-none")
 
-                fetch(URL)
+                fetch(URL) // fetch di tipo GET su endpoint con id incorporato
                     .then(resp => {
                         if (resp.ok) {
                             return resp.json()
@@ -115,6 +122,8 @@
                     .then(appToModify => {
                         const { name, description, price, time } = appToModify
 
+                        // prepopolazione campi input con valori reperiti dal server su risorsa specifica 
+                        // (per agevolare l'utente ed evitare errori di battitura)
                         document.getElementById("name").value = name
                         document.getElementById("description").value = description
                         document.getElementById("price").value = price
@@ -126,11 +135,14 @@
             } else {
                 subtitle.innerText = "— Crea appuntamento"
             }
-        }
+        })
 
         const handleSubmit = (event) => {
             console.log("EVENT", event)
             event.preventDefault() // evitiamo il ricaricamento della pagina al click del bottone submit (e conseguente avvio dell'evento submit)
+
+            // creazione dell'oggetto che invieremo come payload
+            // N.B. la creazione di appointmentObj viene fatta ad ogni submit del form
 
             // stiamo creando l'oggetto che verrà poi inviato con la nostra richiesta HTTP di tipo POST
             // questo oggetto si creerà solamente all'invio del form, NON PRIMA.
@@ -151,14 +163,19 @@
             // il body è un'altra proprietà di queste opzioni
             // gli heasders sono un'altra proprietà di queste opzioni e sono a loro volta un OGGETTO!
 
+
+            // qui l'endpoint dipende da come siamo arrivati su questa pagina, se per creazione sarà solo l'url normale, se per modifica avrà anche l'id
+            // questo è deciso dal ternary operator alla creazione della variabile "URL" in alto
             fetch(URL, {
-                method,
-                body: JSON.stringify(newAppointment),
+                method, // è come scrivere method: method,
+                body: JSON.stringify(newAppointment), // è fondamentale fare la stringhifizzazione dell'oggetto nativo o invieremo "[object Object]"
+                // un header in particolare è importantissimo, il Content-Type, per specificare il formato di invio, altrimenti non verrà riconosciuto dal server
+                // l'Authorization header serve in caso di API che richiedono autenticazione tramite una API Key
                 headers: {
                     // questo specifica al server il tipo di dato che abbiamo inviato. riuscirà quindi a convertirlo nell'elemento nativo
                     "Content-Type": "application/json",
                     // la chiave di autenticazione va qui
-                    // Authorization: "Bearer [YOUR API KEY]"
+                    // Authorization: "Bearer [YOUR API KEY]" // metodo di autenticazione con API Key standard
                 }
             })
                 .then(resp => {
@@ -171,12 +188,17 @@
                 .then(createdAppointment => {
                     // qui dentro abbiamo l'assoluta certezza che il dato è stato creato
 
+                    // Aspettiamo il valore di createdAppointment per estrarre un'informazione nuova generata dal server ad es. l'_id
+
+                    // in base a come siamo arrivati qui, per creazione o modifica, creeremo il messaggio più appropriato alla fine della richiesta
+
                     if (id) {
                         alert("Risorsa con id: " + createdAppointment._id + " MODIFICATA con successo!")
 
                     } else {
                         alert("Risorsa con id: " + createdAppointment._id + " CREATA con successo!")
-                        //possiamo quindi resettare il form
+
+                        // pulizia dei campi solo in modalità CREAZIONE (POST)
                         event.target.reset()
                     }
 
@@ -185,10 +207,14 @@
         }
 
         const handleDelete = () => {
+            // chiediamo conferma all'utente di voler eliminare
             const hasConfirmed = confirm("vuoi eliminare l'appuntamento?")
 
             if (hasConfirmed) {
-                fetch(URL, { method: "DELETE" })
+                // se accetta procediamo all'effettiva rimozione
+                fetch(URL, { method: "DELETE" }) // già a questo punto la risorsa è stata eliminata
+                    // aspettare con un then ci può essere utile solo per sapere esattamente quando il server ci ha risposto per avere ulteriore conferma
+                    .then(resp => resp.json())
                     .then(resp => {
                         if (resp.ok) {
                             return resp.json()
@@ -198,6 +224,8 @@
                     })
                     .then(deletedObj => {
                         alert("Risorsa: " + deletedObj.name + " Eliminata con successo!")
+                        // se non usassimo un alert qui servirebbe ritardare l'esecuzione del metodo assign di window, 
+                        // ma siccome alert è "bloccante" in questo specifico caso non occorre
                         window.location.assign("./index.html")
                     })
                     .catch(err => console.log(err))

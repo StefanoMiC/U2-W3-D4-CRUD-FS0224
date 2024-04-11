@@ -64,10 +64,16 @@
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
     <script>
-        const URL = "https://striveschool-api.herokuapp.com/api/agenda/"
-        const params = new URLSearchParams(window.location.search)
-        const id = params.get("appId")
 
+        // Appena si avvia lo script cercherà nell'oggetto window il riferimento alla location.search, che è una stringa
+        // questa stringa viene passata al costruttore URLSearchParams per generare un oggetto avanzato con cui possiamo 
+        // gestire il singolo parametro che abbiamo nella URL in questo momento
+        // o una serie di parametri che potrebbero esserci nella URL in uno scenario più realistico.
+        const params = new URLSearchParams(window.location.search)  // oggetto costruito a partire dai parametri nella URL es. ?appId=2938123
+        const id = params.get("appId")// metodo sull'oggetto URLSearchParams che ci estrae il valore corrispondente alla chiave "appId" da noi scelta e applicata al link in homepage
+        const URL = "https://striveschool-api.herokuapp.com/api/agenda/"
+
+        // al caricamento della pagina facciamo richiesta al server di tornarci i dati specifici della risorsa con l'id che troviamo nella URL
         window.addEventListener("DOMContentLoaded", () => {
             fetch(URL + id)
                 .then(resp => {
@@ -81,7 +87,7 @@
                     const container = document.getElementById("appointment-details")
                     // destrutturazione di oggetto
                     const { _id, name, description, price, time, createdAt, updatedAt } = appObj
-
+                    // svuotiamo il contenitore (togliendo anche lo spinner di conseguenza) e creiamo la struttura già con i dati ottenuti dal server
                     container.innerHTML = `
                     <h1 class="display-5">${name}</h1>
                     <p class="font-monospace">${new Date(time).toLocaleString()}</p>
